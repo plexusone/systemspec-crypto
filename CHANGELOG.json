@@ -1,0 +1,135 @@
+{
+  "irVersion": "1.0",
+  "project": "systemspec-crypto",
+  "repository": "https://github.com/plexusone/systemspec-crypto",
+  "versioning": "semver",
+  "commitConvention": "conventional",
+  "maintainers": [
+    "grokify",
+    "johncwang@gmail.com"
+  ],
+  "releases": [
+    {
+      "version": "v0.1.0",
+      "date": "2026-09-08",
+      "commit": "c083052",
+      "highlights": [
+        {
+          "description": "Initial release of systemspec-crypto: a Go-first, machine-readable IR describing the cryptography a system uses as facts and evidence, never prose. Implementations separate `capabilities` (what they can do) from `usedCapabilities` (what the system does with them), and every claim carries a verification state (discovered → inferred → review-required → verified → attested).",
+          "commit": "777b80d"
+        },
+        {
+          "description": "A `cryptospec` CLI validates a spec against structural rules and reports a human-readable summary; the same subcommands mount under a family aggregate CLI via `NewRootCommand`/`NewCommand`.",
+          "commit": "2571c1a"
+        },
+        {
+          "description": "Dogfooded end to end on the public plexusone/omniagent platform (Argon2id passwords, SHA-256 token hashing, ECDSA/RSA JWT verification, crypto/rand CSPRNG), and exported to a CycloneDX 1.6 CBOM.",
+          "commit": "69cd48e"
+        }
+      ],
+      "added": [
+        {
+          "description": "Core IR types: Spec envelope with format-semver `specVersion`, system identity, and scope",
+          "commit": "cbcacde",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-002"]
+        },
+        {
+          "description": "Shared primitives: Lifecycle vocabulary, Provenance, and type-prefixed ID conventions",
+          "commit": "777b80d",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-001"]
+        },
+        {
+          "description": "Implementation, Algorithm, and Use models — Implementation separates capabilities from usedCapabilities (the anti-hallucination control); Use ties an algorithm to a purpose, component, configuration, locations, and evidence",
+          "commit": "f0c9d0c",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-003", "RMI-SYSTEMSPECCRYPTO-004", "RMI-SYSTEMSPECCRYPTO-005"]
+        },
+        {
+          "description": "Evidence, Claim, and the Verification state machine; claims are the single verification surface, covering inventory objects by reference",
+          "commit": "0de298c",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-006", "RMI-SYSTEMSPECCRYPTO-007"]
+        },
+        {
+          "description": "Go-first JSON Schema generation pipeline (invopop/jsonschema), embedded via go:embed and linted clean by schemakit for static-type friendliness",
+          "commit": "a358493",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-008"]
+        },
+        {
+          "description": "Structural validation rules engine: referential integrity, capability containment, controlled-vocabulary conformance, ID conventions and uniqueness, and evidence requirements on verified/attested claims",
+          "commit": "475b2a2",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-009"]
+        },
+        {
+          "description": "`Parse` loader that rejects unknown fields",
+          "commit": "d7e71a5",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-011"]
+        },
+        {
+          "description": "`cryptospec validate` command with text and JSON output and error-gated exit codes",
+          "commit": "2571c1a",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-011"]
+        },
+        {
+          "description": "`cryptospec report` command: internal summary of implementations, algorithms, uses grouped by purpose, and claims by verification state",
+          "commit": "70caa78",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-012"]
+        },
+        {
+          "description": "CycloneDX CBOM export bridge and `cryptospec cbom export` command; the lossy projection reports the facts CBOM cannot carry",
+          "commit": "e1d8d36",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-022"]
+        }
+      ],
+      "fixed": [
+        {
+          "description": "Capability containment is enforced only when an implementation enumerates its capabilities, so a managed KMS/HSM may declare usage without listing its full capability set",
+          "commit": "819eec6",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-009"]
+        }
+      ],
+      "documentation": [
+        {
+          "description": "PRD, TRD, PLAN, and ROADMAP for INIT-SYSTEMSPECCRYPTO-001",
+          "commit": "64fab7f"
+        },
+        {
+          "description": "SPEC.md normative specification of the v0.1 data model",
+          "commit": "c083052",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-014"]
+        },
+        {
+          "description": "README with model overview, CLI usage, and the Go-first schema workflow",
+          "commit": "25d7988"
+        },
+        {
+          "description": "omniagent dogfood spec and generated CBOM artifact under examples/dogfood",
+          "commit": "69cd48e",
+          "rmis": ["RMI-SYSTEMSPECCRYPTO-013"]
+        }
+      ],
+      "build": [
+        {
+          "description": "Go module targets go 1.26 to match the CI toolchain",
+          "commit": "9994ebc"
+        },
+        {
+          "description": "Go CI and Go Lint workflows over the org reusable workflows",
+          "commit": "a673892"
+        }
+      ],
+      "dependencies": [
+        {
+          "description": "github.com/invopop/jsonschema for schema generation",
+          "commit": "4c3e19d"
+        },
+        {
+          "description": "github.com/spf13/cobra for the CLI",
+          "commit": "004be4b"
+        },
+        {
+          "description": "github.com/CycloneDX/cyclonedx-go for the CBOM bridge",
+          "commit": "1fdfca2"
+        }
+      ]
+    }
+  ]
+}
