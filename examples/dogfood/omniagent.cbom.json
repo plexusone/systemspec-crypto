@@ -1,0 +1,167 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "bom-ref": "omniagent",
+      "type": "application",
+      "name": "OmniAgent"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "impl:go-stdlib-crypto",
+      "type": "library",
+      "name": "Go standard library crypto packages",
+      "version": "go1.26"
+    },
+    {
+      "bom-ref": "impl:x-crypto",
+      "type": "library",
+      "name": "golang.org/x/crypto",
+      "version": "v0.56.0"
+    },
+    {
+      "bom-ref": "impl:golang-jwt",
+      "type": "library",
+      "name": "github.com/golang-jwt/jwt/v5",
+      "version": "v5.3.1"
+    },
+    {
+      "bom-ref": "impl:gorilla-sessions",
+      "type": "library",
+      "name": "github.com/gorilla/sessions (securecookie)",
+      "version": "v1.4.0"
+    },
+    {
+      "bom-ref": "algorithm:argon2id",
+      "type": "cryptographic-asset",
+      "name": "Argon2id",
+      "description": "RFC 9106",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kdf",
+          "cryptoFunctions": [
+            "keyderive"
+          ]
+        }
+      }
+    },
+    {
+      "bom-ref": "algorithm:sha-256",
+      "type": "cryptographic-asset",
+      "name": "SHA-256",
+      "description": "FIPS 180-4",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "hash",
+          "cryptoFunctions": [
+            "digest"
+          ]
+        }
+      }
+    },
+    {
+      "bom-ref": "algorithm:ecdsa",
+      "type": "cryptographic-asset",
+      "name": "ECDSA (P-256/P-384/P-521)",
+      "description": "FIPS 186-5",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "cryptoFunctions": [
+            "sign",
+            "verify"
+          ]
+        }
+      }
+    },
+    {
+      "bom-ref": "algorithm:rsa",
+      "type": "cryptographic-asset",
+      "name": "RSA signature (PKCS#1)",
+      "description": "RFC 8017",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "cryptoFunctions": [
+            "sign",
+            "verify"
+          ]
+        }
+      }
+    },
+    {
+      "bom-ref": "algorithm:hmac-sha256",
+      "type": "cryptographic-asset",
+      "name": "HMAC-SHA-256",
+      "description": "FIPS 198-1",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "mac",
+          "cryptoFunctions": [
+            "tag"
+          ]
+        }
+      }
+    },
+    {
+      "bom-ref": "algorithm:csprng",
+      "type": "cryptographic-asset",
+      "name": "Cryptographically secure RNG (crypto/rand)",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "drbg",
+          "cryptoFunctions": [
+            "generate"
+          ]
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "omniagent",
+      "dependsOn": [
+        "impl:go-stdlib-crypto",
+        "impl:x-crypto",
+        "impl:golang-jwt",
+        "impl:gorilla-sessions"
+      ]
+    },
+    {
+      "ref": "impl:go-stdlib-crypto",
+      "provides": [
+        "algorithm:sha-256",
+        "algorithm:csprng"
+      ]
+    },
+    {
+      "ref": "impl:x-crypto",
+      "provides": [
+        "algorithm:argon2id"
+      ]
+    },
+    {
+      "ref": "impl:golang-jwt",
+      "provides": [
+        "algorithm:ecdsa",
+        "algorithm:rsa"
+      ]
+    },
+    {
+      "ref": "impl:gorilla-sessions",
+      "provides": [
+        "algorithm:hmac-sha256"
+      ]
+    }
+  ]
+}

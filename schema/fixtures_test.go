@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -98,6 +99,11 @@ func TestValidFixtures(t *testing.T) {
 func TestDogfoodSpecs(t *testing.T) {
 	compiled := compileSpecSchema(t)
 	for _, path := range globFixtures(t, filepath.Join("..", "examples", "dogfood")) {
+		// Dogfood directories also hold generated CBOM artifacts, which are
+		// CycloneDX documents, not cryptospec.Spec files — skip them.
+		if strings.HasSuffix(path, ".cbom.json") {
+			continue
+		}
 		t.Run(filepath.Base(path), func(t *testing.T) {
 			data, err := os.ReadFile(path)
 			if err != nil {
