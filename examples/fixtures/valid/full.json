@@ -1,0 +1,126 @@
+{
+  "specVersion": "0.1.0",
+  "metadata": {
+    "name": "Example Service crypto spec",
+    "description": "Illustrative fixture exercising every core object type."
+  },
+  "system": {
+    "id": "example-service",
+    "name": "Example Service"
+  },
+  "scope": {
+    "release": "1.8.2",
+    "environment": "production",
+    "components": ["update-service", "api"]
+  },
+  "implementations": [
+    {
+      "id": "impl:go-stdlib",
+      "type": "library",
+      "name": "Go standard crypto packages",
+      "version": "go1.27",
+      "capabilities": ["SHA-256", "SHA-512", "AES-256-GCM", "Ed25519"],
+      "usedCapabilities": ["SHA-256", "AES-256-GCM"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:go-mod"]
+    },
+    {
+      "id": "impl:cloud-kms",
+      "type": "kms",
+      "name": "Managed KMS",
+      "provider": "example-cloud",
+      "usedCapabilities": ["AES-256-GCM"],
+      "evidenceRefs": ["evidence:kms-config"]
+    }
+  ],
+  "algorithms": [
+    {
+      "id": "algorithm:sha-256",
+      "name": "SHA-256",
+      "class": "hash",
+      "standard": "FIPS 180-4",
+      "lifecycle": { "status": "available" }
+    },
+    {
+      "id": "algorithm:aes-256-gcm",
+      "name": "AES-256-GCM",
+      "class": "authenticated-encryption",
+      "keySize": 256,
+      "lifecycle": { "status": "available" }
+    }
+  ],
+  "uses": [
+    {
+      "id": "use:artifact-integrity",
+      "purpose": "integrity",
+      "description": "Verifies integrity of downloaded software artifacts.",
+      "algorithmRef": "algorithm:sha-256",
+      "implementationRef": "impl:go-stdlib",
+      "component": "update-service",
+      "data": { "classification": "software-artifact" },
+      "configuration": { "salted": false, "iterations": 1 },
+      "locations": [
+        { "type": "source", "repository": "example/update-service", "path": "internal/update/verify.go", "symbol": "verifyArtifact" }
+      ],
+      "standards": ["FIPS-180-4"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:verify-source"]
+    },
+    {
+      "id": "use:data-at-rest",
+      "purpose": "confidentiality",
+      "description": "Encrypts customer data at rest via managed KMS envelope encryption.",
+      "algorithmRef": "algorithm:aes-256-gcm",
+      "implementationRef": "impl:cloud-kms",
+      "component": "api",
+      "data": { "classification": "customer-data" },
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:kms-config"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:sha256-artifact-integrity",
+      "type": "crypto-usage",
+      "statement": "SHA-256 is used for artifact integrity verification in the update service.",
+      "targetRefs": ["use:artifact-integrity"],
+      "verification": {
+        "status": "verified",
+        "method": "source-analysis",
+        "verifiedBy": "security-team",
+        "verifiedAt": "2026-09-07T23:00:00Z"
+      },
+      "evidenceRefs": ["evidence:verify-source"]
+    },
+    {
+      "id": "claim:customer-data-encrypted",
+      "type": "crypto-usage",
+      "statement": "Customer data is encrypted at rest with AES-256-GCM via managed KMS.",
+      "targetRefs": ["use:data-at-rest", "impl:cloud-kms"],
+      "verification": {
+        "status": "inferred",
+        "method": "cloud-configuration"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:verify-source",
+      "type": "source-code",
+      "repository": "example/update-service",
+      "path": "internal/update/verify.go",
+      "symbol": "verifyArtifact",
+      "provenance": { "method": "static-analyzer", "analyzer": "crypto-analyzer", "analyzedAt": "2026-09-07T22:00:00Z" }
+    },
+    {
+      "id": "evidence:go-mod",
+      "type": "dependency",
+      "path": "go.mod"
+    },
+    {
+      "id": "evidence:kms-config",
+      "type": "cloud-configuration",
+      "uri": "cloud://kms/keyring/customer-data"
+    }
+  ]
+}

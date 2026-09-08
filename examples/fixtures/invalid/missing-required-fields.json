@@ -1,0 +1,12 @@
+{
+  "specVersion": "0.1.0",
+  "system": {
+    "id": "example-service"
+  },
+  "algorithms": [
+    {
+      "id": "algorithm:sha-256",
+      "name": "SHA-256"
+    }
+  ]
+}

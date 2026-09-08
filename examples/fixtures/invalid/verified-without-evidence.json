@@ -1,0 +1,18 @@
+{
+  "specVersion": "0.1.0",
+  "system": { "id": "example-service" },
+  "algorithms": [
+    { "id": "algorithm:sha-256", "name": "SHA-256", "class": "hash" }
+  ],
+  "uses": [
+    { "id": "use:artifact-integrity", "purpose": "integrity", "algorithmRef": "algorithm:sha-256" }
+  ],
+  "claims": [
+    {
+      "id": "claim:sha256-integrity",
+      "statement": "SHA-256 is used for artifact integrity.",
+      "targetRefs": ["use:artifact-integrity"],
+      "verification": { "status": "verified" }
+    }
+  ]
+}

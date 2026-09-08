@@ -1,0 +1,14 @@
+{
+  "specVersion": "0.1.0",
+  "system": { "id": "example-service" },
+  "algorithms": [
+    { "id": "algorithm:sha-256", "name": "SHA-256", "class": "hash" }
+  ],
+  "uses": [
+    {
+      "id": "use:artifact-integrity",
+      "purpose": "integrity",
+      "algorithmRef": "algorithm:sha-512"
+    }
+  ]
+}

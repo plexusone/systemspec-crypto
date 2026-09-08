@@ -1,0 +1,13 @@
+{
+  "specVersion": "0.1.0",
+  "system": { "id": "example-service" },
+  "implementations": [
+    {
+      "id": "impl:go-stdlib",
+      "type": "library",
+      "name": "Go standard crypto packages",
+      "capabilities": ["SHA-256"],
+      "usedCapabilities": ["SHA-256", "RSA-4096"]
+    }
+  ]
+}

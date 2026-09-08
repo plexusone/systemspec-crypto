@@ -1,0 +1,7 @@
+{
+  "specVersion": "0.1.0",
+  "system": {
+    "id": "example-service",
+    "name": "Example Service"
+  }
+}
