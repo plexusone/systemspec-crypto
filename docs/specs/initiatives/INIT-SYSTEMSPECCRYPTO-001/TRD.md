@@ -1,0 +1,266 @@
+# TRD — systemspec-crypto — Machine-Readable Cryptography Evidence IR (v0.1)
+
+**Initiative:** `INIT-SYSTEMSPECCRYPTO-001`
+
+## Architecture Overview
+
+```text
+Source / dependencies / config / SBOM / runtime evidence
+      │  discovery & analysis (AI or scanner — out of repo scope)
+      ▼
+Proposed facts (discovered / inferred)
+      │  human review
+      ▼
+cryptospec JSON IR  ◄── Go structs (source of truth)
+      │                   │ invopop/jsonschema
+      │                   ▼
+      │              JSON Schema — schemakit lint --property-case camelCase — //go:embed
+      │
+      ├──► validate: referential integrity + semantic rules
+      ├──► report: human-readable projections
+      └──► later phases: CBOM import/export, posture linter, disclosure views
+```
+
+The IR represents facts and evidence; answer generation, linting, and CBOM exchange are consumers. JSON Schema validates the wire contract and stays within the static-type profile: no `oneOf`/`anyOf`/`allOf`/`not`, homogeneous arrays, explicit discriminated fields for polymorphism.
+
+## Core Model
+
+```go
+type Spec struct {
+    SpecVersion     string           `json:"specVersion"`
+    Metadata        Metadata         `json:"metadata,omitempty"`
+    System          SystemRef        `json:"system"`
+    Scope           Scope            `json:"scope,omitempty"`
+    Implementations []Implementation `json:"implementations,omitempty"`
+    Algorithms      []Algorithm      `json:"algorithms,omitempty"`
+    Uses            []Use            `json:"uses,omitempty"`
+    Claims          []Claim          `json:"claims,omitempty"`
+    Evidence        []Evidence       `json:"evidence,omitempty"`
+}
+```
+
+### Scope and system identity
+
+Every spec states exactly what it describes — which system, release, environment, and components. This matters when a customer asks about a released version while the main branch already contains unreleased crypto changes.
+
+```go
+type Scope struct {
+    Release     string   `json:"release,omitempty"`
+    Environment string   `json:"environment,omitempty"`
+    Components  []string `json:"components,omitempty"`
+}
+```
+
+### Implementation
+
+Libraries are only one implementation mechanism, so the concept is `Implementation` with a type vocabulary:
+
+```text
+library | runtime | operating-system | cloud-provider | kms | hsm | tpm |
+database | service | hardware | external
+```
+
+```go
+type Implementation struct {
+    ID               string    `json:"id"`
+    Type             string    `json:"type"`
+    Name             string    `json:"name"`
+    Version          string    `json:"version,omitempty"`
+    Provider         string    `json:"provider,omitempty"`
+    Capabilities     []string  `json:"capabilities,omitempty"`     // what it CAN do
+    UsedCapabilities []string  `json:"usedCapabilities,omitempty"` // what this system DOES with it
+    Lifecycle        Lifecycle `json:"lifecycle,omitempty"`
+    EvidenceRefs     []string  `json:"evidenceRefs,omitempty"`
+}
+```
+
+**`Capabilities` ≠ `UsedCapabilities`** is the key anti-hallucination control: a scanner or LLM must never turn "the library supports X" into "the product uses X." `validate` enforces `usedCapabilities ⊆ capabilities` and every entry in `usedCapabilities` should be justified by at least one `Use`.
+
+### Algorithm
+
+A normalized registry describing what each primitive *is* — never how the system uses it (that is `Use`).
+
+```go
+type Algorithm struct {
+    ID        string    `json:"id"`
+    Name      string    `json:"name"`      // e.g. "SHA-256", "AES-256-GCM"
+    Class     string    `json:"class"`
+    Standard  string    `json:"standard,omitempty"` // e.g. "FIPS 180-4"
+    KeySize   int       `json:"keySize,omitempty"`
+    Lifecycle Lifecycle `json:"lifecycle,omitempty"`
+}
+```
+
+Class vocabulary:
+
+```text
+hash | mac | symmetric-encryption | authenticated-encryption |
+asymmetric-encryption | signature | kdf | password-hash |
+key-agreement | kem | randomness
+```
+
+### Use — the heart of the spec
+
+```go
+type Use struct {
+    ID                string        `json:"id"`
+    Purpose           string        `json:"purpose"` // integrity | confidentiality | authentication | signing | credential-protection | ...
+    Description       string        `json:"description,omitempty"`
+    AlgorithmRef      string        `json:"algorithmRef"`
+    ImplementationRef string        `json:"implementationRef,omitempty"`
+    Component         string        `json:"component,omitempty"`
+    Data              *DataContext  `json:"data,omitempty"`          // classification of the protected data
+    Configuration     *UseConfig    `json:"configuration,omitempty"` // salted, iterations, parameters
+    Locations         []Location    `json:"locations,omitempty"`     // source / config / deployment locators
+    Standards         []string      `json:"standards,omitempty"`
+    Lifecycle         Lifecycle     `json:"lifecycle,omitempty"`
+    RoadmapRefs       []string      `json:"roadmapRefs,omitempty"`
+    EvidenceRefs      []string      `json:"evidenceRefs,omitempty"`
+}
+```
+
+One `Use` record answers many differently-worded questions: *which hashes?* (algorithmRef) — *why?* (purpose) — *where?* (component, locations) — *salted?* (configuration) — *which implementation?* (implementationRef) — *prove it* (evidenceRefs). `UseConfig` carries the parameters questionnaires ask about (salt, iterations/work factor, parameter sets); for password hashing this is where KDF parameters live.
+
+### Claim, Evidence, Verification
+
+Every significant assertion is a claim supported by evidence and carrying a verification state:
+
+```go
+type Claim struct {
+    ID           string       `json:"id"`
+    Type         string       `json:"type"` // e.g. "crypto-usage"
+    Statement    string       `json:"statement"`
+    TargetRefs   []string     `json:"targetRefs,omitempty"` // uses/implementations/algorithms this claim covers
+    Verification Verification `json:"verification"`
+    EvidenceRefs []string     `json:"evidenceRefs,omitempty"`
+}
+
+type Evidence struct {
+    ID         string     `json:"id"`
+    Type       string     `json:"type"`
+    Repository string     `json:"repository,omitempty"`
+    Path       string     `json:"path,omitempty"`
+    Symbol     string     `json:"symbol,omitempty"`
+    URI        string     `json:"uri,omitempty"`
+    Provenance Provenance `json:"provenance,omitempty"`
+}
+
+type Verification struct {
+    Status     string `json:"status"`
+    Method     string `json:"method,omitempty"`
+    VerifiedBy string `json:"verifiedBy,omitempty"`
+    VerifiedAt string `json:"verifiedAt,omitempty"` // RFC 3339
+}
+```
+
+Evidence type vocabulary:
+
+```text
+source-code | dependency | configuration | iac | runtime-observation |
+tls-scan | sbom | cbom | cloud-configuration | certificate | test |
+documentation | human-attestation | vendor-documentation
+```
+
+**Verification state machine:**
+
+```text
+discovered → inferred → review-required → verified → attested
+```
+
+Not every fact must reach `attested`, but downstream consumers can apply policies over the state:
+
+```text
+verified / attested  → state as fact
+inferred             → qualify or request review
+discovered           → supporting evidence only
+unknown              → "not currently documented"
+conflicting          → block and request review
+```
+
+`validate` rejects statuses outside the vocabulary; transition ordering is advisory in v0.1 (any state may be recorded), with transition auditing left to tooling that writes the spec.
+
+### Shared primitives (local now, family later)
+
+```go
+type Lifecycle struct {
+    Status     string `json:"status"` // proposed | planned | in-progress | available | deprecated | retired | cancelled
+    Introduced string `json:"introduced,omitempty"`
+    Deprecated string `json:"deprecated,omitempty"`
+    Removed    string `json:"removed,omitempty"`
+}
+
+type Provenance struct {
+    Method     string `json:"method"` // static-analyzer | llm-analyzer | sbom-import | scanner | developer | security-review
+    Analyzer   string `json:"analyzer,omitempty"`
+    AnalyzedAt string `json:"analyzedAt,omitempty"`
+}
+```
+
+`Lifecycle`, `Evidence`, `Provenance`, `Verification`, and ID/reference conventions are shared-primitive candidates for the whole spec family. **They are defined locally in this module for v0.1**; extraction into a shared family root module is a deliberate later decision, deferred until at least a second family member needs them — small shared schemas, no lockstep versioning.
+
+**Planning stays out of the spec.** Objects may carry `roadmapRefs` (opaque roadmap-item IDs); target dates, dependencies, and status of planned work live in roadmap tooling. This prevents the spec from becoming a project-management format and prevents consumers from converting "planned" into "supported."
+
+**Secrets invariant:** the model describes key classes and management practices (post-v0.1 phases); no field may hold key material, secret values, or operational credentials.
+
+## Validation Rules
+
+Shipped in v0.1 as application-level rules over one schema:
+
+```text
+referential integrity   → algorithmRef / implementationRef / evidenceRefs / targetRefs resolve
+capability containment  → usedCapabilities ⊆ capabilities per implementation
+usage justification     → each usedCapability referenced by at least one Use (warning)
+vocabulary conformance  → lifecycle status, verification status, algorithm class,
+                          implementation type, evidence type within controlled vocabularies
+uniqueness              → object IDs unique within the spec
+evidence expectation    → verified/attested claims must carry evidenceRefs
+```
+
+## CLI
+
+```text
+# v0.1
+cryptospec validate <crypto.json>
+cryptospec report <crypto.json>          # human-readable internal summary
+
+# later phases
+cryptospec cbom import|export ...
+cryptospec lint <crypto.json> [--profile ...]
+cryptospec report <crypto.json> --view internal|auditor|customer|public
+```
+
+Library-first: all capability lives in importable packages; `cmd/cryptospec` is a thin adapter. The `cli` package exposes:
+
+```go
+cli.NewRootCommand() // standalone: cryptospec ...
+cli.NewCommand()     // mountable:  <family-cli> crypto ...
+```
+
+so a future family aggregate CLI mounts this module with one import and one `AddCommand()`.
+
+## Repository Layout
+
+```text
+systemspec-crypto/
+├── cryptospec/     # core types: spec, implementation, algorithm, use, claim, evidence,
+│                   # lifecycle, provenance, verification
+├── validate/       # referential integrity + semantic rules
+├── schema/         # generated *.schema.json + //go:embed + gen/ (go:build ignore) + tools.go
+├── cli/            # cobra command constructors (NewRootCommand / NewCommand)
+├── cmd/cryptospec/ # thin main
+├── examples/       # fixture corpus (valid/invalid) + dogfood spec
+└── docs/specs/initiatives/INIT-SYSTEMSPECCRYPTO-001/
+```
+
+Later phases add `cbom/`, `lint/`, `policy/`, `report/`.
+
+## Schema Pipeline, Conformance & Testing
+
+- Go structs → invopop/jsonschema → `schema/*.schema.json`, linted by `schemakit lint --property-case camelCase` in CI, embedded via `//go:embed`.
+- `tools.go` with `//go:build tools` blank imports so `go mod tidy` keeps the generator's deps (standard `gen/main.go` pattern).
+- Fixture corpus (`examples/fixtures/{valid,invalid}`) exercised by both the Go validator and JSON Schema validation; round-trip test Go → JSON → schema-validate → Go with semantic equality.
+- The dogfood spec (a real Go application, modeled end to end) doubles as the authoring-UX test: if modeling a real system feels painful, the schema changes, not the example.
+
+## Dependencies
+
+Cobra (CLI), `invopop/jsonschema` (schema generation), `grokify/schemakit` (lint, dev/CI tool). Verify latest versions before adding. No dependency on CycloneDX tooling until the CBOM bridge phase; no runtime dependency on other family specs — references are by ID/URI.
