@@ -1,0 +1,419 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/plexusone/systemspec-crypto/cryptospec/spec",
+  "$defs": {
+    "Algorithm": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "standard": {
+          "type": "string"
+        },
+        "keySize": {
+          "type": "integer"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/Lifecycle"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "class"
+      ]
+    },
+    "Claim": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "targetRefs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verification": {
+          "$ref": "#/$defs/Verification"
+        },
+        "evidenceRefs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "statement",
+        "verification"
+      ]
+    },
+    "DataContext": {
+      "properties": {
+        "classification": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "classification"
+      ]
+    },
+    "Evidence": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ]
+    },
+    "Implementation": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "usedCapabilities": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/Lifecycle"
+        },
+        "evidenceRefs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "name"
+      ]
+    },
+    "Lifecycle": {
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "introduced": {
+          "type": "string"
+        },
+        "deprecated": {
+          "type": "string"
+        },
+        "removed": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Location": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type"
+      ]
+    },
+    "Metadata": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Provenance": {
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "analyzer": {
+          "type": "string"
+        },
+        "analyzedAt": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Scope": {
+      "properties": {
+        "release": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "components": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SystemRef": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id"
+      ]
+    },
+    "Use": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "algorithmRef": {
+          "type": "string"
+        },
+        "implementationRef": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/DataContext"
+        },
+        "configuration": {
+          "$ref": "#/$defs/UseConfig"
+        },
+        "locations": {
+          "items": {
+            "$ref": "#/$defs/Location"
+          },
+          "type": "array"
+        },
+        "standards": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/Lifecycle"
+        },
+        "roadmapRefs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "evidenceRefs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "purpose",
+        "algorithmRef"
+      ]
+    },
+    "UseConfig": {
+      "properties": {
+        "salted": {
+          "type": "boolean"
+        },
+        "iterations": {
+          "type": "integer"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Verification": {
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "verifiedBy": {
+          "type": "string"
+        },
+        "verifiedAt": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "status"
+      ]
+    }
+  },
+  "properties": {
+    "specVersion": {
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/Metadata"
+    },
+    "system": {
+      "$ref": "#/$defs/SystemRef"
+    },
+    "scope": {
+      "$ref": "#/$defs/Scope"
+    },
+    "implementations": {
+      "items": {
+        "$ref": "#/$defs/Implementation"
+      },
+      "type": "array"
+    },
+    "algorithms": {
+      "items": {
+        "$ref": "#/$defs/Algorithm"
+      },
+      "type": "array"
+    },
+    "uses": {
+      "items": {
+        "$ref": "#/$defs/Use"
+      },
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "type": "array"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "specVersion",
+    "system"
+  ]
+}
