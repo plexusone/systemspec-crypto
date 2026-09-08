@@ -275,7 +275,10 @@ Shipped in v0.1 as application-level rules over one schema:
 
 ```text
 referential integrity   → algorithmRef / implementationRef / evidenceRefs / targetRefs resolve
-capability containment  → usedCapabilities ⊆ capabilities per implementation
+capability containment  → usedCapabilities ⊆ capabilities per implementation,
+                          enforced only when capabilities are enumerated (a
+                          managed KMS/HSM may declare usage without listing its
+                          full capability set)
 usage justification     → each usedCapability referenced by at least one Use (warning)
 vocabulary conformance  → lifecycle status, verification status, algorithm class,
                           implementation type, evidence type, use purpose, location
