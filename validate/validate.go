@@ -109,12 +109,17 @@ func (v *validator) checkImplementations(spec *cryptospec.Spec) {
 		v.checkEvidenceRefs(impl.EvidenceRefs, p)
 
 		// Capability containment: usedCapabilities must be a subset of
-		// capabilities — the core anti-hallucination control.
-		for j, uc := range impl.UsedCapabilities {
-			if !slices.Contains(impl.Capabilities, uc) {
-				v.errorf("core.capability-containment",
-					fmt.Sprintf("%s.usedCapabilities[%d]", p, j),
-					"usedCapability %q is not declared in capabilities", uc)
+		// capabilities — the core anti-hallucination control. Only enforced
+		// when capabilities are enumerated; an implementation whose full
+		// capability set is unlisted (e.g. a managed KMS) may still declare
+		// what it is used for.
+		if len(impl.Capabilities) > 0 {
+			for j, uc := range impl.UsedCapabilities {
+				if !slices.Contains(impl.Capabilities, uc) {
+					v.errorf("core.capability-containment",
+						fmt.Sprintf("%s.usedCapabilities[%d]", p, j),
+						"usedCapability %q is not declared in capabilities", uc)
+				}
 			}
 		}
 		// Usage justification: an implementation that claims used capabilities

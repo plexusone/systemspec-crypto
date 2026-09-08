@@ -58,6 +58,19 @@ func hasRule(findings []Finding, rule string) bool {
 	return false
 }
 
+func TestValidate_UsedCapabilitiesWithoutCapabilities(t *testing.T) {
+	// A managed KMS may declare what it is used for without enumerating its
+	// full capability set; containment must not fire.
+	s := goodSpec()
+	s.Implementations[0].Capabilities = nil
+	s.Implementations[0].UsedCapabilities = []string{"AES-256-GCM"}
+	for _, f := range Validate(s) {
+		if f.RuleID == "core.capability-containment" {
+			t.Errorf("containment should not fire without enumerated capabilities: %+v", f)
+		}
+	}
+}
+
 func TestValidate_Rules(t *testing.T) {
 	cases := []struct {
 		name    string
