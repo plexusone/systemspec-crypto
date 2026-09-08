@@ -38,5 +38,6 @@ func subcommands() []*cobra.Command {
 	return []*cobra.Command{
 		newValidateCommand(),
 		newReportCommand(),
+		newCBOMCommand(),
 	}
 }
