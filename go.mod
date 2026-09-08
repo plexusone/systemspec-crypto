@@ -1,6 +1,6 @@
 module github.com/plexusone/systemspec-crypto
 
-go 1.27.0
+go 1.26
 
 require (
 	github.com/CycloneDX/cyclonedx-go v0.12.0
