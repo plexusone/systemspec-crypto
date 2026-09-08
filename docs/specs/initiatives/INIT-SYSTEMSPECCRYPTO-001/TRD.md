@@ -202,6 +202,8 @@ type Provenance struct {
 
 **Secrets invariant:** the model describes key classes and management practices (post-v0.1 phases); no field may hold key material, secret values, or operational credentials.
 
+**Post-v0.1 model notes.** The Phase 4 key-management model carries explicit standards-conformance fields on key classes and key-management providers (e.g. NIST SP 800-57, KMIP, PKCS#11, X9 family), so the key-management techniques and standards a system supports are answerable from the IR, not prose. The Phase 7 crypto-RAS model explicitly spans reliability, availability, and serviceability as separate categories — including serviceability facts like cryptographic audit logging, crypto health checks, and automated renewal — because questionnaires ask the three categories individually.
+
 ## Validation Rules
 
 Shipped in v0.1 as application-level rules over one schema:

@@ -54,7 +54,7 @@
 
 **Theme:** Extend the descriptive model to what enterprise questionnaires ask about constantly — keys, certificates, protocols, protections. Key classes and management practices only; never secret values.
 
-- [ ] `RMI-SYSTEMSPECCRYPTO-015` Key classes: type, algorithm ref, generation, storage, exportability, rotation, access, lifecycle across the key-management lifecycle vocabulary
+- [ ] `RMI-SYSTEMSPECCRYPTO-015` Key classes: type, algorithm ref, generation, storage, exportability, rotation, access, applicable standards, lifecycle across the key-management lifecycle vocabulary
   - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
 - [ ] `RMI-SYSTEMSPECCRYPTO-016` Certificates and PKI classes: purpose, issuer, trust anchors, validity, renewal/rotation/revocation, expiration monitoring
   - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
@@ -62,7 +62,7 @@
   - Depends on: `RMI-SYSTEMSPECCRYPTO-016`
 - [ ] `RMI-SYSTEMSPECCRYPTO-018` Protections: data at rest / in transit / in use targets mapped to uses
   - Depends on: `RMI-SYSTEMSPECCRYPTO-015`
-- [ ] `RMI-SYSTEMSPECCRYPTO-019` Key-management providers (KMS/HSM/PKI/external) and validation rules for the extended model; dogfood spec extended to full TLS and key-class posture
+- [ ] `RMI-SYSTEMSPECCRYPTO-019` Key-management providers (KMS/HSM/PKI/external) with supported key-management standards conformance (e.g. NIST SP 800-57, KMIP, PKCS#11, X9 family) and validation rules for the extended model; dogfood spec extended to full TLS and key-class posture
   - Depends on: `RMI-SYSTEMSPECCRYPTO-017`
   - Depends on: `RMI-SYSTEMSPECCRYPTO-018`
 
@@ -105,7 +105,7 @@
   - Depends on: `RMI-SYSTEMSPECCRYPTO-019`
 - [ ] `RMI-SYSTEMSPECCRYPTO-031` PQC assessment model: quantum risk per use, migration candidates, standards, roadmap references — assessment over the existing estate, planning stays in roadmap refs
   - Depends on: `RMI-SYSTEMSPECCRYPTO-030`
-- [ ] `RMI-SYSTEMSPECCRYPTO-032` Crypto-specific RAS characteristics: KMS/HSM redundancy, key caching and failure behavior, certificate/key rollover, expiry detection, compromise recovery
+- [ ] `RMI-SYSTEMSPECCRYPTO-032` Crypto-specific RAS characteristics, explicitly spanning all three categories — reliability (fail-closed certificate validation, key rotation with overlap, provider failover), availability (KMS/HSM redundancy, key caching and failure behavior, certificate/key rollover without downtime), serviceability (certificate expiry detection and monitoring, cryptographic audit logging, crypto health checks, automated renewal, compromise recovery procedures)
   - Depends on: `RMI-SYSTEMSPECCRYPTO-019`
 - [ ] `RMI-SYSTEMSPECCRYPTO-033` Disclosure-policy model: field-level rules projecting one authoritative spec to internal/auditor/customer/public views
   - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
