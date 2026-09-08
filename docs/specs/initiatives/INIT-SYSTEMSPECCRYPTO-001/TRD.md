@@ -39,7 +39,25 @@ type Spec struct {
 }
 ```
 
-### Scope and system identity
+### Spec versioning, metadata, and system identity
+
+`specVersion` carries the semver of the **spec format** (not the described system): v0.1 files carry `"0.1.0"`. Additive format changes bump minor; breaking changes bump major. Tooling accepts any file whose major version it understands.
+
+```go
+type Metadata struct {
+    Name        string `json:"name,omitempty"`
+    Description string `json:"description,omitempty"`
+    CreatedAt   string `json:"createdAt,omitempty"` // RFC 3339
+    UpdatedAt   string `json:"updatedAt,omitempty"`
+}
+
+type SystemRef struct {
+    ID   string `json:"id"`
+    Name string `json:"name,omitempty"`
+}
+```
+
+`SystemRef` is deliberately minimal in v0.1 — an opaque system ID plus display name. A structured family-wide identifier scheme is a later shared-primitives decision; adopting one must not break v0.1 files (the ID stays a string).
 
 Every spec states exactly what it describes — which system, release, environment, and components. This matters when a customer asks about a released version while the main branch already contains unreleased crypto changes.
 
@@ -50,6 +68,20 @@ type Scope struct {
     Components  []string `json:"components,omitempty"`
 }
 ```
+
+### ID and reference conventions
+
+Object IDs are lowercase kebab-case strings with a type prefix, unique within the spec:
+
+```text
+impl:<slug>        e.g. impl:go-stdlib-crypto
+algorithm:<slug>   e.g. algorithm:sha-256
+use:<slug>         e.g. use:artifact-integrity
+claim:<slug>       e.g. claim:sha256-artifact-integrity
+evidence:<slug>    e.g. evidence:update-verify-source
+```
+
+Reference fields (`algorithmRef`, `implementationRef`, `evidenceRefs`, `targetRefs`) hold these IDs verbatim. `validate` enforces that each ID carries the prefix matching its object type and that every reference points at an object of the expected type. `roadmapRefs` are the exception: they are opaque external identifiers, never resolved by this module.
 
 ### Implementation
 
@@ -104,7 +136,7 @@ key-agreement | kem | randomness
 ```go
 type Use struct {
     ID                string        `json:"id"`
-    Purpose           string        `json:"purpose"` // integrity | confidentiality | authentication | signing | credential-protection | ...
+    Purpose           string        `json:"purpose"`
     Description       string        `json:"description,omitempty"`
     AlgorithmRef      string        `json:"algorithmRef"`
     ImplementationRef string        `json:"implementationRef,omitempty"`
@@ -119,9 +151,42 @@ type Use struct {
 }
 ```
 
-One `Use` record answers many differently-worded questions: *which hashes?* (algorithmRef) — *why?* (purpose) — *where?* (component, locations) — *salted?* (configuration) — *which implementation?* (implementationRef) — *prove it* (evidenceRefs). `UseConfig` carries the parameters questionnaires ask about (salt, iterations/work factor, parameter sets); for password hashing this is where KDF parameters live.
+One `Use` record answers many differently-worded questions: *which hashes?* (algorithmRef) — *why?* (purpose) — *where?* (component, locations) — *salted?* (configuration) — *which implementation?* (implementationRef) — *prove it* (evidenceRefs).
+
+**`Purpose` is a closed vocabulary** (enforced by `validate`), with `other` + `description` as the escape hatch so authors never invent near-synonyms:
+
+```text
+integrity | confidentiality | authentication | signing | key-derivation |
+credential-protection | randomness | other
+```
+
+Supporting types:
+
+```go
+type UseConfig struct {
+    Salted     *bool             `json:"salted,omitempty"`     // nil = not documented, false = explicitly unsalted
+    Iterations int               `json:"iterations,omitempty"` // work factor where applicable
+    Parameters map[string]string `json:"parameters,omitempty"` // named parameter set, e.g. argon2 memory/threads, AES mode
+}
+
+type DataContext struct {
+    Classification string `json:"classification"` // e.g. customer-data, credentials, software-artifact, telemetry
+    Description    string `json:"description,omitempty"`
+}
+
+type Location struct {
+    Type       string `json:"type"` // source | config | deployment | runtime
+    Repository string `json:"repository,omitempty"`
+    Path       string `json:"path,omitempty"`
+    Symbol     string `json:"symbol,omitempty"`
+}
+```
+
+`UseConfig` carries the parameters questionnaires ask about; for password hashing this is where KDF parameters live. Common parameters get explicit fields (`salted`, `iterations`); everything else goes in `parameters`, a homogeneous `map[string]string` — allowed under the static-type profile (fixed value type, no `map[string]any`), following the same precedent as the family's earlier specs. The tri-state `*bool` on `salted` distinguishes "explicitly unsalted" from "not documented," which matters for answer policies.
 
 ### Claim, Evidence, Verification
+
+**Verification lives on claims only — deliberately.** Inventory objects (implementations, algorithms, uses) carry `evidenceRefs` but no verification status of their own; the claim is the unit that gets verified, and one claim can cover several objects via `targetRefs`. Implementers must not add per-object verification fields: two verification surfaces would let an object's status and its covering claim's status disagree, and consumers would not know which to trust.
 
 Every significant assertion is a claim supported by evidence and carrying a verification state:
 
@@ -213,7 +278,10 @@ referential integrity   → algorithmRef / implementationRef / evidenceRefs / ta
 capability containment  → usedCapabilities ⊆ capabilities per implementation
 usage justification     → each usedCapability referenced by at least one Use (warning)
 vocabulary conformance  → lifecycle status, verification status, algorithm class,
-                          implementation type, evidence type within controlled vocabularies
+                          implementation type, evidence type, use purpose, location
+                          type within controlled vocabularies
+id conventions          → type-prefixed IDs (impl:/algorithm:/use:/claim:/evidence:);
+                          references resolve to objects of the expected type
 uniqueness              → object IDs unique within the spec
 evidence expectation    → verified/attested claims must carry evidenceRefs
 ```
