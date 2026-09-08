@@ -55,6 +55,10 @@ cryptospec validate crypto.json
 
 # print a human-readable internal summary
 cryptospec report crypto.json
+
+# project the crypto inventory to a CycloneDX 1.6 CBOM (lossy conversions
+# are reported on stderr)
+cryptospec cbom export crypto.json --output crypto.cbom.json
 ```
 
 The same commands mount under a family aggregate CLI as `systemspec crypto ...`.
@@ -83,14 +87,15 @@ schemakit lint schema/crypto.schema.json --property-case camelCase
 | `cryptospec` | Core IR types (source of truth) and the `Parse` loader |
 | `validate` | Structural validation rules (referential integrity, capability containment, vocabulary conformance, evidence requirements) |
 | `schema` | Generated, embedded JSON Schema |
+| `cbom` | CycloneDX CBOM export bridge |
 | `cli` | Cobra command constructors (`NewRootCommand`, `NewCommand`) |
 | `cmd/cryptospec` | Thin standalone CLI binary |
 
 ## Status
 
 v0.1: core inventory model, evidence and verification, schema pipeline,
-validation, and CLI. Key management, CBOM bridge, and a policy-driven posture
-linter are planned — see
+validation, and CLI, plus early CycloneDX CBOM export. Key management, CBOM
+import, and a policy-driven posture linter are planned — see
 [`docs/specs/initiatives/INIT-SYSTEMSPECCRYPTO-001`](docs/specs/initiatives/INIT-SYSTEMSPECCRYPTO-001).
 
 ## License

@@ -7,14 +7,14 @@
 
 **Theme:** Lock the typed core — shared primitives, implementations, algorithms, uses — before any tooling. `capabilities` vs `usedCapabilities` and the `Use` object are the decisions everything downstream depends on.
 
-- [ ] `RMI-SYSTEMSPECCRYPTO-001` Shared primitives: Lifecycle vocabulary (proposed/planned/in-progress/available/deprecated/retired/cancelled), Provenance, ID and reference conventions, roadmapRefs pattern
-- [ ] `RMI-SYSTEMSPECCRYPTO-002` Spec envelope: specVersion, metadata, system identity, scope (release, environment, components)
+- [x] `RMI-SYSTEMSPECCRYPTO-001` Shared primitives: Lifecycle vocabulary (proposed/planned/in-progress/available/deprecated/retired/cancelled), Provenance, ID and reference conventions, roadmapRefs pattern
+- [x] `RMI-SYSTEMSPECCRYPTO-002` Spec envelope: specVersion, metadata, system identity, scope (release, environment, components)
   - Depends on: `RMI-SYSTEMSPECCRYPTO-001`
-- [ ] `RMI-SYSTEMSPECCRYPTO-003` Implementations: type vocabulary (library/runtime/os/cloud-provider/kms/hsm/tpm/database/service/hardware/external), capabilities vs usedCapabilities
+- [x] `RMI-SYSTEMSPECCRYPTO-003` Implementations: type vocabulary (library/runtime/os/cloud-provider/kms/hsm/tpm/database/service/hardware/external), capabilities vs usedCapabilities
   - Depends on: `RMI-SYSTEMSPECCRYPTO-001`
-- [ ] `RMI-SYSTEMSPECCRYPTO-004` Algorithm registry: class vocabulary (hash/mac/symmetric/authenticated/asymmetric/signature/kdf/password-hash/key-agreement/kem/randomness), standards, parameters
+- [x] `RMI-SYSTEMSPECCRYPTO-004` Algorithm registry: class vocabulary (hash/mac/symmetric/authenticated/asymmetric/signature/kdf/password-hash/key-agreement/kem/randomness), standards, parameters
   - Depends on: `RMI-SYSTEMSPECCRYPTO-001`
-- [ ] `RMI-SYSTEMSPECCRYPTO-005` Uses: purpose vocabulary, algorithm/implementation refs, component, data classification, configuration (salt/iterations/parameter sets), locations, standards
+- [x] `RMI-SYSTEMSPECCRYPTO-005` Uses: purpose vocabulary, algorithm/implementation refs, component, data classification, configuration (salt/iterations/parameter sets), locations, standards
   - Depends on: `RMI-SYSTEMSPECCRYPTO-003`
   - Depends on: `RMI-SYSTEMSPECCRYPTO-004`
 
@@ -22,28 +22,28 @@
 
 **Theme:** Facts without verification states are the hallucination surface this spec exists to eliminate.
 
-- [ ] `RMI-SYSTEMSPECCRYPTO-006` Evidence model: type vocabulary (source-code/dependency/configuration/iac/runtime-observation/tls-scan/sbom/cbom/cloud-configuration/certificate/test/documentation/human-attestation/vendor-documentation), source locators
+- [x] `RMI-SYSTEMSPECCRYPTO-006` Evidence model: type vocabulary (source-code/dependency/configuration/iac/runtime-observation/tls-scan/sbom/cbom/cloud-configuration/certificate/test/documentation/human-attestation/vendor-documentation), source locators
   - Depends on: `RMI-SYSTEMSPECCRYPTO-001`
-- [ ] `RMI-SYSTEMSPECCRYPTO-007` Claims and verification state machine: discovered → inferred → review-required → verified → attested; evidence requirements per state
+- [x] `RMI-SYSTEMSPECCRYPTO-007` Claims and verification state machine: discovered → inferred → review-required → verified → attested; evidence requirements per state
   - Depends on: `RMI-SYSTEMSPECCRYPTO-006`
-- [ ] `RMI-SYSTEMSPECCRYPTO-008` Schema pipeline: generate JSON Schemas from Go types (invopop/jsonschema), schemakit lint camelCase, go:embed, tools.go guard
+- [x] `RMI-SYSTEMSPECCRYPTO-008` Schema pipeline: generate JSON Schemas from Go types (invopop/jsonschema), schemakit lint camelCase, go:embed, tools.go guard
   - Depends on: `RMI-SYSTEMSPECCRYPTO-002`
   - Depends on: `RMI-SYSTEMSPECCRYPTO-005`
   - Depends on: `RMI-SYSTEMSPECCRYPTO-007`
-- [ ] `RMI-SYSTEMSPECCRYPTO-009` Validation rules: referential integrity, usedCapabilities ⊆ capabilities, usage justification, controlled-vocabulary conformance, ID uniqueness, evidence expectations on verified/attested claims
+- [x] `RMI-SYSTEMSPECCRYPTO-009` Validation rules: referential integrity, usedCapabilities ⊆ capabilities, usage justification, controlled-vocabulary conformance, ID uniqueness, evidence expectations on verified/attested claims
   - Depends on: `RMI-SYSTEMSPECCRYPTO-008`
-- [ ] `RMI-SYSTEMSPECCRYPTO-010` Fixture corpus and round-trip tests: valid/invalid examples exercised by Go validator and JSON Schema validation
+- [x] `RMI-SYSTEMSPECCRYPTO-010` Fixture corpus and round-trip tests: valid/invalid examples exercised by Go validator and JSON Schema validation
   - Depends on: `RMI-SYSTEMSPECCRYPTO-008`
 
 ## Phase 3 — CLI & Dogfood (closes v0.1)
 
 **Theme:** First payoff — a real application's cryptography fully described, queryable, and evidence-backed.
 
-- [ ] `RMI-SYSTEMSPECCRYPTO-011` CLI foundation: cli package with NewRootCommand/NewCommand constructors, cmd/cryptospec, cryptospec validate with JSON and console output
+- [x] `RMI-SYSTEMSPECCRYPTO-011` CLI foundation: cli package with NewRootCommand/NewCommand constructors, cmd/cryptospec, cryptospec validate with JSON and console output
   - Depends on: `RMI-SYSTEMSPECCRYPTO-009`
-- [ ] `RMI-SYSTEMSPECCRYPTO-012` cryptospec report: human-readable internal summary (implementations, algorithms, uses grouped by purpose and component)
+- [x] `RMI-SYSTEMSPECCRYPTO-012` cryptospec report: human-readable internal summary (implementations, algorithms, uses grouped by purpose and component)
   - Depends on: `RMI-SYSTEMSPECCRYPTO-011`
-- [ ] `RMI-SYSTEMSPECCRYPTO-013` Dogfood spec: model a real Go application end to end; canonical questionnaire questions answered purely from the IR with evidence traceability
+- [x] `RMI-SYSTEMSPECCRYPTO-013` Dogfood spec: model a real Go application end to end; canonical questionnaire questions answered purely from the IR with evidence traceability
   - Depends on: `RMI-SYSTEMSPECCRYPTO-010`
   - Depends on: `RMI-SYSTEMSPECCRYPTO-011`
 - [ ] `RMI-SYSTEMSPECCRYPTO-014` v0.1 release: SPEC.md normative document, README, CI (test/lint/schema-lint/conformance), tag
@@ -70,11 +70,13 @@
 
 **Theme:** CycloneDX CBOM as interchange peer — import/export, never reinvention.
 
+> Note: CBOM export (RMI-022) was pulled forward and shipped early, validated on the omniagent dogfood spec. Import and round-trip fixtures remain in sequence.
+
 - [ ] `RMI-SYSTEMSPECCRYPTO-020` Artifact references: SBOM/CBOM attachment metadata (type, format, version, URI)
   - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
 - [ ] `RMI-SYSTEMSPECCRYPTO-021` CBOM import: CycloneDX cryptographic assets mapped into implementations/algorithms as discovered facts
   - Depends on: `RMI-SYSTEMSPECCRYPTO-020`
-- [ ] `RMI-SYSTEMSPECCRYPTO-022` CBOM export: spec inventory projected to CycloneDX CBOM; lossy conversions reported, never silent
+- [x] `RMI-SYSTEMSPECCRYPTO-022` CBOM export: spec inventory projected to CycloneDX CBOM; lossy conversions reported, never silent
   - Depends on: `RMI-SYSTEMSPECCRYPTO-020`
 - [ ] `RMI-SYSTEMSPECCRYPTO-023` Mapping fixtures: round-trip corpus against real CycloneDX CBOM examples
   - Depends on: `RMI-SYSTEMSPECCRYPTO-021`
