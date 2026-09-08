@@ -5,3 +5,6 @@ IDEATION_CHAT*.md
 # Go
 /bin/
 coverage.out
+
+# MkDocs build output
+site/

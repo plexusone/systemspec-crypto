@@ -1,0 +1,63 @@
+site_name: systemspec-crypto
+site_description: A Go-first, machine-readable IR describing a system's cryptography as facts and evidence
+site_url: https://plexusone.github.io/systemspec-crypto/
+repo_url: https://github.com/plexusone/systemspec-crypto
+repo_name: plexusone/systemspec-crypto
+
+theme:
+  name: material
+  palette:
+    # Dark mode first (PlexusOne default)
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - https://plexusone.dev/css/plexusone-mkdocs.css
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Specification: spec.md
+  - Initiative:
+      - PRD: specs/initiatives/INIT-SYSTEMSPECCRYPTO-001/PRD.md
+      - TRD: specs/initiatives/INIT-SYSTEMSPECCRYPTO-001/TRD.md
+      - PLAN: specs/initiatives/INIT-SYSTEMSPECCRYPTO-001/PLAN.md
+      - ROADMAP: specs/initiatives/INIT-SYSTEMSPECCRYPTO-001/ROADMAP.md
+  - Changelog: changelog.md
+  - Releases:
+      - v0.1.0: releases/v0.1.0.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/plexusone/systemspec-crypto
