@@ -1,0 +1,288 @@
+{
+  "specVersion": "0.1.0",
+  "metadata": {
+    "name": "OmniAgent cryptography spec",
+    "description": "Dogfood spec: the cryptography of the public github.com/plexusone/omniagent Go agent platform, discovered by source analysis and modeled end to end."
+  },
+  "system": {
+    "id": "omniagent",
+    "name": "OmniAgent"
+  },
+  "scope": {
+    "environment": "production",
+    "components": ["team-auth", "api-openai-auth", "gateway"]
+  },
+  "implementations": [
+    {
+      "id": "impl:go-stdlib-crypto",
+      "type": "library",
+      "name": "Go standard library crypto packages",
+      "version": "go1.26",
+      "capabilities": ["SHA-256", "ECDSA", "RSA", "CSPRNG", "constant-time-comparison"],
+      "usedCapabilities": ["SHA-256", "ECDSA", "RSA", "CSPRNG", "constant-time-comparison"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:go-mod"]
+    },
+    {
+      "id": "impl:x-crypto",
+      "type": "library",
+      "name": "golang.org/x/crypto",
+      "version": "v0.56.0",
+      "capabilities": ["Argon2id", "Argon2i"],
+      "usedCapabilities": ["Argon2id"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:go-mod", "evidence:password-source"]
+    },
+    {
+      "id": "impl:golang-jwt",
+      "type": "library",
+      "name": "github.com/golang-jwt/jwt/v5",
+      "version": "v5.3.1",
+      "usedCapabilities": ["JWT-signature-verification"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:go-mod", "evidence:aauth-source"]
+    },
+    {
+      "id": "impl:gorilla-sessions",
+      "type": "library",
+      "name": "github.com/gorilla/sessions (securecookie)",
+      "version": "v1.4.0",
+      "usedCapabilities": ["cookie-authentication"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:go-mod", "evidence:session-source"]
+    }
+  ],
+  "algorithms": [
+    {
+      "id": "algorithm:argon2id",
+      "name": "Argon2id",
+      "class": "password-hash",
+      "standard": "RFC 9106",
+      "lifecycle": { "status": "available" }
+    },
+    {
+      "id": "algorithm:sha-256",
+      "name": "SHA-256",
+      "class": "hash",
+      "standard": "FIPS 180-4",
+      "lifecycle": { "status": "available" }
+    },
+    {
+      "id": "algorithm:ecdsa",
+      "name": "ECDSA (P-256/P-384/P-521)",
+      "class": "signature",
+      "standard": "FIPS 186-5",
+      "lifecycle": { "status": "available" }
+    },
+    {
+      "id": "algorithm:rsa",
+      "name": "RSA signature (PKCS#1)",
+      "class": "signature",
+      "standard": "RFC 8017",
+      "lifecycle": { "status": "available" }
+    },
+    {
+      "id": "algorithm:hmac-sha256",
+      "name": "HMAC-SHA-256",
+      "class": "mac",
+      "standard": "FIPS 198-1",
+      "lifecycle": { "status": "available" }
+    },
+    {
+      "id": "algorithm:csprng",
+      "name": "Cryptographically secure RNG (crypto/rand)",
+      "class": "randomness",
+      "lifecycle": { "status": "available" }
+    }
+  ],
+  "uses": [
+    {
+      "id": "use:password-hashing",
+      "purpose": "credential-protection",
+      "description": "Hashes team-login passwords with Argon2id (OWASP-aligned parameters), PHC-encoded so stored credentials remain verifiable if parameters are tuned.",
+      "algorithmRef": "algorithm:argon2id",
+      "implementationRef": "impl:x-crypto",
+      "component": "team-auth",
+      "data": { "classification": "credentials" },
+      "configuration": {
+        "salted": true,
+        "iterations": 1,
+        "parameters": {
+          "variant": "argon2id",
+          "memoryKiB": "65536",
+          "parallelism": "4",
+          "keyLengthBytes": "32",
+          "saltLengthBytes": "16",
+          "version": "19"
+        }
+      },
+      "locations": [
+        { "type": "source", "repository": "plexusone/omniagent", "path": "team/auth/password.go", "symbol": "hashPassword" }
+      ],
+      "standards": ["RFC 9106"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:password-source"]
+    },
+    {
+      "id": "use:token-hashing",
+      "purpose": "credential-protection",
+      "description": "Hashes magic-link and session tokens with SHA-256 before storage; only the hash is persisted, the raw token lives in the link or cookie.",
+      "algorithmRef": "algorithm:sha-256",
+      "implementationRef": "impl:go-stdlib-crypto",
+      "component": "team-auth",
+      "data": { "classification": "credentials" },
+      "configuration": { "salted": false },
+      "locations": [
+        { "type": "source", "repository": "plexusone/omniagent", "path": "team/auth/token.go", "symbol": "hashToken" }
+      ],
+      "standards": ["FIPS 180-4"],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:token-source"]
+    },
+    {
+      "id": "use:aauth-jwt-ecdsa",
+      "purpose": "authentication",
+      "description": "Verifies AAuth JWT signatures using ECDSA public keys (P-256/P-384/P-521) resolved from the issuer JWKS.",
+      "algorithmRef": "algorithm:ecdsa",
+      "implementationRef": "impl:golang-jwt",
+      "component": "api-openai-auth",
+      "locations": [
+        { "type": "source", "repository": "plexusone/omniagent", "path": "api/openai/auth/aauth.go", "symbol": "AAuthVerifier.Verify" }
+      ],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:aauth-source"]
+    },
+    {
+      "id": "use:aauth-jwt-rsa",
+      "purpose": "authentication",
+      "description": "Verifies AAuth JWT signatures using RSA public keys resolved from the issuer JWKS.",
+      "algorithmRef": "algorithm:rsa",
+      "implementationRef": "impl:golang-jwt",
+      "component": "api-openai-auth",
+      "locations": [
+        { "type": "source", "repository": "plexusone/omniagent", "path": "api/openai/auth/aauth.go", "symbol": "jwk.toRSAPublicKey" }
+      ],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:aauth-source"]
+    },
+    {
+      "id": "use:secure-random",
+      "purpose": "randomness",
+      "description": "Generates password salts, 256-bit magic-link/session tokens, and OAuth state values from the platform CSPRNG (crypto/rand).",
+      "algorithmRef": "algorithm:csprng",
+      "implementationRef": "impl:go-stdlib-crypto",
+      "component": "team-auth",
+      "locations": [
+        { "type": "source", "repository": "plexusone/omniagent", "path": "team/auth/token.go", "symbol": "newToken" },
+        { "type": "source", "repository": "plexusone/omniagent", "path": "team/auth/password.go", "symbol": "hashPassword" },
+        { "type": "source", "repository": "plexusone/omniagent", "path": "api/openai/auth/session.go", "symbol": "generateRandomState" }
+      ],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:rand-source"]
+    },
+    {
+      "id": "use:session-cookie-authentication",
+      "purpose": "authentication",
+      "description": "Authenticates session cookies via a gorilla securecookie cookie store keyed by the configured session secret.",
+      "algorithmRef": "algorithm:hmac-sha256",
+      "implementationRef": "impl:gorilla-sessions",
+      "component": "api-openai-auth",
+      "data": { "classification": "session-state" },
+      "locations": [
+        { "type": "source", "repository": "plexusone/omniagent", "path": "api/openai/auth/session.go", "symbol": "NewSessionManager" }
+      ],
+      "lifecycle": { "status": "available" },
+      "evidenceRefs": ["evidence:session-source"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:passwords-argon2id",
+      "type": "crypto-usage",
+      "statement": "Team-login passwords are hashed with Argon2id using 64 MiB memory, one iteration, and four lanes, with a 16-byte random salt.",
+      "targetRefs": ["use:password-hashing", "impl:x-crypto"],
+      "verification": { "status": "verified", "method": "source-analysis", "verifiedBy": "security-review", "verifiedAt": "2026-09-07T00:00:00Z" },
+      "evidenceRefs": ["evidence:password-source"]
+    },
+    {
+      "id": "claim:tokens-sha256",
+      "type": "crypto-usage",
+      "statement": "Magic-link and session tokens are stored only as SHA-256 hashes; the raw token is never persisted.",
+      "targetRefs": ["use:token-hashing"],
+      "verification": { "status": "verified", "method": "source-analysis", "verifiedBy": "security-review", "verifiedAt": "2026-09-07T00:00:00Z" },
+      "evidenceRefs": ["evidence:token-source"]
+    },
+    {
+      "id": "claim:aauth-asymmetric-verification",
+      "type": "crypto-usage",
+      "statement": "AAuth JWTs are verified against ECDSA or RSA public keys resolved from the issuer JWKS.",
+      "targetRefs": ["use:aauth-jwt-ecdsa", "use:aauth-jwt-rsa", "impl:golang-jwt"],
+      "verification": { "status": "verified", "method": "source-analysis", "verifiedBy": "security-review", "verifiedAt": "2026-09-07T00:00:00Z" },
+      "evidenceRefs": ["evidence:aauth-source"]
+    },
+    {
+      "id": "claim:secure-randomness",
+      "type": "crypto-usage",
+      "statement": "Salts, tokens, and OAuth state values are drawn from crypto/rand, the platform CSPRNG.",
+      "targetRefs": ["use:secure-random"],
+      "verification": { "status": "verified", "method": "source-analysis", "verifiedBy": "security-review", "verifiedAt": "2026-09-07T00:00:00Z" },
+      "evidenceRefs": ["evidence:rand-source"]
+    },
+    {
+      "id": "claim:session-cookie-mac",
+      "type": "crypto-usage",
+      "statement": "Session cookies are authenticated by gorilla securecookie, which uses HMAC-SHA-256 by default.",
+      "targetRefs": ["use:session-cookie-authentication"],
+      "verification": { "status": "inferred", "method": "library-default" }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:go-mod",
+      "type": "dependency",
+      "repository": "plexusone/omniagent",
+      "path": "go.mod",
+      "provenance": { "method": "static-analyzer", "analyzer": "source-review" }
+    },
+    {
+      "id": "evidence:password-source",
+      "type": "source-code",
+      "repository": "plexusone/omniagent",
+      "path": "team/auth/password.go",
+      "symbol": "hashPassword",
+      "provenance": { "method": "security-review", "analyzer": "source-review" }
+    },
+    {
+      "id": "evidence:token-source",
+      "type": "source-code",
+      "repository": "plexusone/omniagent",
+      "path": "team/auth/token.go",
+      "symbol": "hashToken",
+      "provenance": { "method": "security-review", "analyzer": "source-review" }
+    },
+    {
+      "id": "evidence:aauth-source",
+      "type": "source-code",
+      "repository": "plexusone/omniagent",
+      "path": "api/openai/auth/aauth.go",
+      "symbol": "AAuthVerifier.Verify",
+      "provenance": { "method": "security-review", "analyzer": "source-review" }
+    },
+    {
+      "id": "evidence:rand-source",
+      "type": "source-code",
+      "repository": "plexusone/omniagent",
+      "path": "team/auth/token.go",
+      "symbol": "newToken",
+      "provenance": { "method": "security-review", "analyzer": "source-review" }
+    },
+    {
+      "id": "evidence:session-source",
+      "type": "source-code",
+      "repository": "plexusone/omniagent",
+      "path": "api/openai/auth/session.go",
+      "symbol": "NewSessionManager",
+      "provenance": { "method": "security-review", "analyzer": "source-review" }
+    }
+  ]
+}

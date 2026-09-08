@@ -92,6 +92,42 @@ func TestValidFixtures(t *testing.T) {
 	}
 }
 
+// TestDogfoodSpecs proves the real dogfood specs under examples/dogfood
+// validate against the JSON Schema, unmarshal cleanly, and produce no
+// error-severity findings — the bar any real, hand-authored spec must meet.
+func TestDogfoodSpecs(t *testing.T) {
+	compiled := compileSpecSchema(t)
+	for _, path := range globFixtures(t, filepath.Join("..", "examples", "dogfood")) {
+		t.Run(filepath.Base(path), func(t *testing.T) {
+			data, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatalf("read dogfood spec: %v", err)
+			}
+
+			var doc any
+			if err := json.Unmarshal(data, &doc); err != nil {
+				t.Fatalf("dogfood spec is not valid JSON: %v", err)
+			}
+			if err := compiled.Validate(doc); err != nil {
+				t.Fatalf("dogfood spec does not validate against crypto.schema.json: %v", err)
+			}
+
+			spec, err := cryptospec.Parse(data)
+			if err != nil {
+				t.Fatalf("dogfood spec does not parse: %v", err)
+			}
+			if len(spec.Uses) == 0 {
+				t.Error("expected at least one use in a dogfood spec")
+			}
+			for _, f := range validate.Validate(spec) {
+				if f.Severity == validate.SeverityError {
+					t.Errorf("validation error: %s %s: %s", f.RuleID, f.Path, f.Message)
+				}
+			}
+		})
+	}
+}
+
 // TestInvalidFixtures proves every file under examples/fixtures/invalid is
 // rejected by at least one layer: JSON Schema catches structural violations
 // (missing required fields, wrong types), and the Go validator catches
