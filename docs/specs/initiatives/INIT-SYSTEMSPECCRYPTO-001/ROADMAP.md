@@ -66,7 +66,25 @@
   - Depends on: `RMI-SYSTEMSPECCRYPTO-017`
   - Depends on: `RMI-SYSTEMSPECCRYPTO-018`
 
-## Phase 5 — CBOM Bridge
+## Phase 5 — Review, Expectation & Operating Mode
+
+**Theme:** Declared facts expire, expectations sit at or above the policy floor, and the operating mode of the cryptography is stated. Driven by the first producer of declared facts, so the model is designed against a real consumer.
+
+- [ ] `RMI-SYSTEMSPECCRYPTO-038` Review fields on verification: `reviewBy` (date), `reviewedAt`, `reviewedBy`; validation of ordering and passed reviews as of an evaluation time; expiry derived at read time and never written back
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
+- [ ] `RMI-SYSTEMSPECCRYPTO-039` Expectation object: owner, target (protocol, protection or external boundary), minimum and allow-set attributes at or above the policy floor, source-configuration pointer, and a waiver form (reason, owner) for below-floor declarations
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-017`
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-018`
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-038`
+- [ ] `RMI-SYSTEMSPECCRYPTO-040` Operating mode and module validation on implementations: approved-only versus standard mode, cryptographic module name, version and validation reference
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
+- [ ] `RMI-SYSTEMSPECCRYPTO-041` Algorithm profile on uses: the named algorithm-selection profile enforced for a use and the implementation that defines it, distinct from lint profiles
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
+- [ ] `RMI-SYSTEMSPECCRYPTO-042` Key-state summary convention: key classes carry class and policy, current state is a dated claim with verified evidence, no per-version records; fixtures and validation
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-015`
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-038`
+
+## Phase 6 — CBOM Bridge
 
 **Theme:** CycloneDX CBOM as interchange peer — import/export, never reinvention.
 
@@ -84,22 +102,23 @@
 - [ ] `RMI-SYSTEMSPECCRYPTO-024` cryptospec cbom import/export commands
   - Depends on: `RMI-SYSTEMSPECCRYPTO-023`
 
-## Phase 6 — Posture Linter & Policy
+## Phase 7 — Posture Linter & Policy
 
 **Theme:** Evaluate the described state against configurable policy; findings are ephemeral artifacts, never spec facts.
 
-- [ ] `RMI-SYSTEMSPECCRYPTO-025` Policy model: prohibited/deprecated algorithms, minimum key sizes, minimum protocol versions, rotation and KDF requirements
+- [ ] `RMI-SYSTEMSPECCRYPTO-025` Policy model: prohibited/deprecated algorithms, minimum key sizes, minimum protocol versions, allow-sets for suites and groups, rotation and KDF requirements; policy is the floor an expectation is checked against
   - Depends on: `RMI-SYSTEMSPECCRYPTO-019`
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-039`
 - [ ] `RMI-SYSTEMSPECCRYPTO-026` Findings model: ephemeral finding artifacts with rule ID, target ref, result, severity, observedAt — separate from spec facts
   - Depends on: `RMI-SYSTEMSPECCRYPTO-025`
-- [ ] `RMI-SYSTEMSPECCRYPTO-027` Rule engine and core rule classes: capability risk vs configured risk, conditional-pass / secure-configuration-required as first-class results
+- [ ] `RMI-SYSTEMSPECCRYPTO-027` Rule engine and core rule classes: capability risk vs configured risk, violation vs drift vs exception, conditional-pass for waivers until review date, secure-configuration-required as first-class results
   - Depends on: `RMI-SYSTEMSPECCRYPTO-026`
 - [ ] `RMI-SYSTEMSPECCRYPTO-028` Lint profiles: default-modern plus standards-aligned profiles evaluating the same spec against different expectations
   - Depends on: `RMI-SYSTEMSPECCRYPTO-027`
 - [ ] `RMI-SYSTEMSPECCRYPTO-029` cryptospec lint command with profile selection, JSON and console output, CI-gate exit codes
   - Depends on: `RMI-SYSTEMSPECCRYPTO-028`
 
-## Phase 7 — Agility, PQC, RAS & Disclosure (demand-paced)
+## Phase 8 — Agility, PQC, RAS & Disclosure (demand-paced)
 
 **Theme:** Grow assessment and projection models from real questionnaire and review needs, not upfront taxonomy.
 
@@ -114,7 +133,7 @@
 - [ ] `RMI-SYSTEMSPECCRYPTO-034` cryptospec report --view projections driven by disclosure policy; traceability from projected statements back to claims and evidence
   - Depends on: `RMI-SYSTEMSPECCRYPTO-033`
 
-## Phase 8 — Semantic Diff & Change Impact
+## Phase 9 — Semantic Diff & Change Impact
 
 **Theme:** Crypto change as typed data — mirrors systemspec-architecture's diff layering (ChangeSet → generic impacts). Framework-neutral: compliance mapping (e.g. FedRAMP change assessment) lives in downstream aggregators, never here.
 
