@@ -244,6 +244,82 @@ conflicting          → block and request review
 
 `validate` rejects statuses outside the vocabulary; transition ordering is advisory in v0.1 (any state may be recorded), with transition auditing left to tooling that writes the spec.
 
+### Review, expectation and operating mode (planned, v0.2)
+
+These additions serve producers of **declared** facts: statements about
+cryptography that the producer does not itself enforce (an edge TLS
+configuration, a database connection policy). They keep a declaration from
+being read as current fact after it has stopped being reviewed.
+
+**Review fields.** `Verification` gains three optional fields, still on claims
+only (see above):
+
+```go
+type Verification struct {
+    // ...existing fields...
+    ReviewBy   string `json:"reviewBy,omitempty"`   // RFC 3339 full-date: deadline for the next review
+    ReviewedAt string `json:"reviewedAt,omitempty"` // RFC 3339 timestamp: when a person last reaffirmed the claim
+    ReviewedBy string `json:"reviewedBy,omitempty"` // person or team; defaults to VerifiedBy when absent
+}
+```
+
+- `verifiedAt` is when the status was reached; `reviewedAt` is when a person
+  last looked at it and reaffirmed it without changing the status. A
+  reaffirmation does not claim re-verification.
+- **Expiry is derived, not stored.** A consumer evaluating at time T treats a
+  claim whose `reviewBy` is before T as `review-required`, and the stored
+  `status` is unchanged. The file does not change meaning as the clock moves,
+  and the diff layer does not report the passage of time as a change.
+- `validate` rejects a `reviewBy` earlier than `reviewedAt`, and warns on a
+  claim past its `reviewBy` as of the evaluation time (`--as-of`, defaulting to
+  now).
+
+**Policy, expectation and actual.** Three things are kept distinct:
+
+| Term | Meaning | Where it lives |
+|---|---|---|
+| **Policy** | The floor. Generic, applies to every system. | The lint policy (Phase 7), never in the spec |
+| **Expectation** | What this boundary is declared to be. Specific, with an owner. At or above the floor. | A spec object |
+| **Actual** | What was observed. | Evidence (`tls-scan`, `runtime-observation`) |
+
+```text
+policy (floor)  <=  expectation (declared target)  <=  actual (observed)
+```
+
+- An **Expectation** is an inventory object with an `owner`, the object it
+  applies to (a protocol, protection or external boundary), its attributes,
+  and `evidenceRefs` pointing at where the real configuration lives. Its
+  review date lives on the claim that covers it, not on the object, so the
+  single verification surface rule holds.
+- **Attributes take two forms.** Ordered attributes (a TLS version, a key
+  size) are minimums; the expectation must be greater than or equal to the
+  policy minimum. Set-valued attributes (cipher suites, key-exchange groups)
+  are allow-sets; the expectation must be a subset of the policy's set.
+- A boundary with **no expectation is held to the policy directly**.
+- An expectation **below the floor is a waiver**. It must carry a reason and
+  an owner, and its covering claim must carry `reviewBy`. The linter reports it
+  as a conditional pass until the review date and as a failure after it.
+- The three comparisons give three results: actual below policy is a
+  **violation**; actual below expectation but above policy is **drift**; an
+  expectation below policy is an **exception**.
+
+**Operating mode.** An implementation records `operatingMode` (for example
+approved-algorithms-only versus standard) and, for a cryptographic module, its
+name, version and validation reference. A claim that a system runs in an
+approved-only mode then points at the implementation that states it.
+
+**Algorithm profile.** A use records the named `algorithmProfile` enforced for
+it (for example `fips` or `standard`) and the implementation that defines it.
+It is deliberately not called `profile` alone: lint profiles (Phase 7) are
+evaluation expectations over a whole spec and are a different concept.
+
+**Key state is a summary, not a record per version.** Key classes carry their
+class and policy (algorithm, storage, rotation interval). Current state is
+carried as a dated claim ("all versions within policy as of T; current version
+N") backed by `verified` evidence. The spec holds no row per key version, which
+would change with every rotation and drown the diff layer in noise; live state
+belongs to the system that manages the keys.
+
 ### Shared primitives (local now, family later)
 
 ```go
@@ -267,7 +343,7 @@ type Provenance struct {
 
 **Secrets invariant:** the model describes key classes and management practices (post-v0.1 phases); no field may hold key material, secret values, or operational credentials.
 
-**Post-v0.1 model notes.** The Phase 4 key-management model carries explicit standards-conformance fields on key classes and key-management providers (e.g. NIST SP 800-57, KMIP, PKCS#11, X9 family), so the key-management techniques and standards a system supports are answerable from the IR, not prose. The Phase 7 crypto-RAS model spans reliability, availability, and serviceability as separate categories — including serviceability facts like cryptographic audit logging, crypto health checks, and automated renewal — so each category is answerable independently.
+**Post-v0.1 model notes.** The Phase 4 key-management model carries explicit standards-conformance fields on key classes and key-management providers (e.g. NIST SP 800-57, KMIP, PKCS#11, X9 family), so the key-management techniques and standards a system supports are answerable from the IR, not prose. The Phase 8 crypto-RAS model spans reliability, availability, and serviceability as separate categories — including serviceability facts like cryptographic audit logging, crypto health checks, and automated renewal — so each category is answerable independently.
 
 ## Validation Rules
 
