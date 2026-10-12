@@ -107,11 +107,22 @@
   - Depends on: `RMI-SYSTEMSPECCRYPTO-019`
 - [ ] `RMI-SYSTEMSPECCRYPTO-031` PQC assessment model: quantum risk per use, migration candidates, standards, roadmap references — assessment over the existing estate, planning stays in roadmap refs
   - Depends on: `RMI-SYSTEMSPECCRYPTO-030`
-- [ ] `RMI-SYSTEMSPECCRYPTO-032` Crypto-specific RAS characteristics, explicitly spanning all three categories — reliability (fail-closed certificate validation, key rotation with overlap, provider failover), availability (KMS/HSM redundancy, key caching and failure behavior, certificate/key rollover without downtime), serviceability (certificate expiry detection and monitoring, cryptographic audit logging, crypto health checks, automated renewal, compromise recovery procedures)
+- [ ] `RMI-SYSTEMSPECCRYPTO-032` Crypto RAS characteristics: reliability (fail-closed validation, rotation overlap, failover), availability (KMS/HSM redundancy, zero-downtime rollover), serviceability (expiry monitoring, audit logging, renewal, compromise recovery)
   - Depends on: `RMI-SYSTEMSPECCRYPTO-019`
 - [ ] `RMI-SYSTEMSPECCRYPTO-033` Disclosure-policy model: field-level rules projecting one authoritative spec to internal/auditor/customer/public views
   - Depends on: `RMI-SYSTEMSPECCRYPTO-014`
 - [ ] `RMI-SYSTEMSPECCRYPTO-034` cryptospec report --view projections driven by disclosure policy; traceability from projected statements back to claims and evidence
   - Depends on: `RMI-SYSTEMSPECCRYPTO-033`
 
-Out of scope for this initiative: questionnaire answer generation (a downstream consumer of the IR), threat/risk analysis (owned by threat-model tooling that consumes this spec), and secrets storage (permanent invariant, never a phase).
+## Phase 8 — Semantic Diff & Change Impact
+
+**Theme:** Crypto change as typed data — mirrors systemspec-architecture's diff layering (ChangeSet → generic impacts). Framework-neutral: compliance mapping (e.g. FedRAMP change assessment) lives in downstream aggregators, never here.
+
+- [ ] `RMI-SYSTEMSPECCRYPTO-035` Semantic diff engine: typed ChangeSet over Spec — implementation/algorithm/use/claim added/removed/modified with field-level deltas
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-010`
+- [ ] `RMI-SYSTEMSPECCRYPTO-036` Change impact classification (framework-neutral): algorithm downgrade or key-size reduction, implementation lifecycle regression, new use on classified data, verification-status regression, standards-reference change
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-035`
+- [ ] `RMI-SYSTEMSPECCRYPTO-037` cryptospec diff command: base/proposed specs in, ChangeSet + impacts out, console and JSON output, CI-gate exit codes, fixture scenarios
+  - Depends on: `RMI-SYSTEMSPECCRYPTO-036`
+
+Out of scope for this initiative: questionnaire answer generation (a downstream consumer of the IR), threat/risk analysis (owned by threat-model tooling that consumes this spec), compliance-framework change classification (downstream aggregators own framework vocabularies; this spec emits generic impacts only), and secrets storage (permanent invariant, never a phase).
